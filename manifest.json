@@ -1,0 +1,19 @@
+{
+  "name": "Monument Apples — Orchard Decision Aid",
+  "short_name": "ODA",
+  "description": "Monument Apples block-level orchard decision aid — phenology, sprays, weather, scoring.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1a1a2e",
+  "theme_color": "#1a1a2e",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "192x192 512x512 any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
