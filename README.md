@@ -22,6 +22,48 @@ Files in this folder get uploaded to `github.com/<your-username>/monument-oda` a
 
 No manual cache clears, no reinstall, no Add-to-Home-Screen redo.
 
+## Installing as an app (one-time per device)
+
+Without installing, the URL opens in a browser tab — not what Steven wants on phone or iPad. Install once per device for a real home-screen app that runs in standalone mode (no browser chrome).
+
+**Android — Chrome:**
+1. Open `https://sbierlink08.github.io/monument-oda/` in Chrome on Android.
+2. 3-dot menu (top right) → "Install app" (or "Add to Home screen" on older Chrome).
+3. Confirm name "ODA" → Install.
+4. App icon lands on the Android home screen.
+5. Tap to open — runs full-screen, no browser bars.
+
+**iPad — Safari ONLY (Chrome on iPad CANNOT install PWAs):**
+Apple restricts PWA install to Safari on iPadOS / iOS. Chrome and other browsers on iPad cannot install the app — they'll only open the URL in a tab.
+
+1. Open `https://sbierlink08.github.io/monument-oda/` in **Safari on iPad** (not Chrome on iPad).
+2. Tap the Share button (square with arrow up, center bottom of Safari).
+3. Scroll down in the share sheet → tap "Add to Home Screen".
+4. Confirm name "ODA" → Add.
+5. App icon lands on the iPad home screen.
+6. Tap to open — runs in standalone mode, no Safari chrome, full-screen.
+
+After install, future taps on the icon open the standalone PWA. The browser tab is the un-installed flow.
+
+**iPhone — Safari ONLY:** same path as iPad. Chrome on iPhone cannot install PWAs either.
+
+**Desktop (Windows / Mac) — Chrome or Edge:**
+1. Open the URL in Chrome / Edge.
+2. Address bar → install icon (small monitor with down arrow on the right side of the URL bar) or 3-dot menu → "Install Monument ODA".
+3. App opens in its own window; pinned to taskbar / dock.
+
+## How sync works between devices
+
+Every install is the same GitHub-hosted `index.html`. So all devices run the same code; updates pushed to `main` reach every install on the next visit through the service worker.
+
+Per-device data (orchard entries, bloom logs, fruit tests) is local to each device unless the Cloud Sync (Google Drive) feature is configured. With Cloud Sync configured to the same Apps Script URL on every device:
+
+- Save on phone → POSTs full state to Drive → next time desktop or iPad opens the app, it GETs from Drive and adopts the newer state.
+- Same in reverse.
+- Concurrent edits on two devices simultaneously is last-write-wins on the full state — no merge logic. For typical Steven workflow (phone in field, desktop later in office), this is fine. Avoid having two devices open + actively logging at the same instant if you can.
+
+The Cloud Sync URL field is in Settings → Cloud Sync (Google Drive). Paste the same Apps Script web-app URL on every device.
+
 ## Verifying locally
 
 From the staging folder, you can test before pushing:

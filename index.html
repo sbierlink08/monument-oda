@@ -263,7 +263,7 @@ body {
   <div style="text-align:center; padding: 8px 0 4px;">
     <div style="font-size:18px; font-weight:700;">Monument Apples</div>
     <div style="font-size:11px; color:var(--text-dim); font-style:italic; margin-top:2px;">Orchard Decision Aid (ODA)</div>
-    <div style="font-size:9px; color:var(--text-dim); margin-top:1px; opacity:0.6;">build 2026-04-25.per-block-dafb-v3-dynamic-scaffold (was per-block-dafb-v2-2025incl)</div>
+    <div id="header-build-stamp" style="font-size:9px; color:var(--text-dim); margin-top:1px; opacity:0.6;">build 2026-04-26.per-block-dafb-v5-bloom-inferred (was in-app-update-check / per-block-dafb-v4-bloom-priority)</div>
     <div style="font-size:12px; color:var(--text-dim);" id="header-date"></div>
     <div id="sync-status"></div>
   </div>
@@ -530,6 +530,16 @@ Blk3 100% king / 75% full bloom"></textarea>
       </div>
       <div id="sync-setup-status" style="font-size:11px; margin-top:8px;"></div>
     </div>
+    <div class="card">
+      <div class="card-title">App Version</div>
+      <div style="font-size:12px; color:var(--text-dim); margin-bottom:10px;">
+        Tap to pull the latest version from GitHub Pages. If a new version is found, the &quot;New version available&quot; banner above will appear — tap that to reload.
+      </div>
+      <div style="display:flex; gap:8px; margin-top:8px;">
+        <button class="btn btn-primary btn-small" id="oda-update-check-btn" onclick="checkForUpdate()">Check for Update</button>
+      </div>
+      <div id="oda-update-check-status" style="font-size:11px; color:var(--text-dim); margin-top:8px;"></div>
+    </div>
   </div>
 
   <!-- ECDH TAB -->
@@ -628,7 +638,7 @@ const VARIETY_PARAMS = {
   }
 };
 
-// Per-block est_harvest_dafb overrides (build 2026-04-25.per-block-dafb-v3-dynamic-scaffold).
+// Per-block est_harvest_dafb overrides (build 2026-04-26.per-block-dafb-v5-bloom-inferred).
 // Dynamic helper getDynamicEstHarvestDafb defined below — wraps static median with season-phase
 // labelling and a per-block confidence band. Weather-shift brain not yet wired (insufficient sample
 // per Child C 2026-04-25 leave-one-year-out check); upgrade after another 2-3 observed seasons.
@@ -643,12 +653,12 @@ const VARIETY_PARAMS = {
 // Block-level value wins over the VARIETY_PARAMS fallback at scoring time via
 // getBlockEstHarvestDafb(); blocks not present here fall back to VARIETY_PARAMS.
 const BLOCK_PARAMS = {
-  BLK1: { variety: 'Honeycrisp',          est_harvest_dafb: 128, dafb_n_years: 7, dafb_range: [115, 140], dafb_years: [2019,2020,2021,2022,2023,2024,2025] },
-  BLK2: { variety: 'Pink Lady',           est_harvest_dafb: 181, dafb_n_years: 5, dafb_range: [175, 194], dafb_years: [2021,2022,2023,2024,2025] },
-  BLK3: { variety: 'Gala',                est_harvest_dafb: 137, dafb_n_years: 7, dafb_range: [122, 146], dafb_years: [2019,2020,2021,2022,2023,2024,2025] },
-  BLK4: { variety: 'Fuji',                est_harvest_dafb: 169, dafb_n_years: 7, dafb_range: [150, 175], dafb_years: [2019,2020,2021,2022,2023,2024,2025] },
-  BLK5: { variety: 'Honeycrisp',          est_harvest_dafb: 127, dafb_n_years: 7, dafb_range: [113, 136], dafb_years: [2019,2020,2021,2022,2023,2024,2025] },
-  BLK6: { variety: 'Honeycrisp (Bud-9)',  est_harvest_dafb: 133, dafb_n_years: 4, dafb_range: [121, 141], dafb_years: [2022,2023,2024,2025] },
+  BLK1: { variety: 'Honeycrisp',          est_harvest_dafb: 127, dafb_n_years: 10, dafb_range: [114, 140], dafb_years: [2016,2017,2018,2019,2020,2021,2022,2023,2024,2025] },
+  BLK2: { variety: 'Pink Lady',           est_harvest_dafb: 181, dafb_n_years: 5,  dafb_range: [176, 195], dafb_years: [2021,2022,2023,2024,2025] },
+  BLK3: { variety: 'Gala',                est_harvest_dafb: 136, dafb_n_years: 10, dafb_range: [121, 150], dafb_years: [2015,2016,2017,2018,2019,2020,2021,2022,2023,2024] },
+  BLK4: { variety: 'Fuji',                est_harvest_dafb: 170, dafb_n_years: 11, dafb_range: [151, 181], dafb_years: [2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025] },
+  BLK5: { variety: 'Honeycrisp',          est_harvest_dafb: 128, dafb_n_years: 10, dafb_range: [113, 138], dafb_years: [2016,2017,2018,2019,2020,2021,2022,2023,2024,2025] },
+  BLK6: { variety: 'Honeycrisp (Bud-9)',  est_harvest_dafb: 135, dafb_n_years: 4,  dafb_range: [121, 146], dafb_years: [2022,2023,2024,2025] },
 };
 
 // Resolve est_harvest_dafb for a (block id, variety) pair. Block-level measurement wins;
@@ -663,7 +673,7 @@ function getBlockEstHarvestDafb(blockId, variety) {
   return null;
 }
 
-// ===== getDynamicEstHarvestDafb (build per-block-dafb-v3-dynamic-scaffold, 2026-04-25) =====
+// ===== getDynamicEstHarvestDafb (build per-block-dafb-v5-bloom-inferred, 2026-04-26) =====
 // Dynamic-shaped harvest Days After Full Bloom estimator. Returns a function-shaped API so
 // downstream consumers (Stop-Chasing-Calcium pre-harvest reminder, harvest-window planner)
 // can adopt it now and not break when the live weather-shift brain ships in a future build.
@@ -731,6 +741,12 @@ function getDynamicEstHarvestDafb(blockId, ctx) {
     },
     scaffold: true,
   };
+}
+
+if (typeof window !== 'undefined') {
+  window.BLOCK_PARAMS = BLOCK_PARAMS;
+  window.getBlockEstHarvestDafb = getBlockEstHarvestDafb;
+  window.getDynamicEstHarvestDafb = getDynamicEstHarvestDafb;
 }
 
 
@@ -3607,6 +3623,64 @@ function resetToDefaults() {
   populateBlockSelectors();
   renderBlockGrid();
   renderSettingsBlocks();
+}
+
+
+// ---- In-app "Check for Update" button (build 2026-04-26.in-app-update-check)
+async function checkForUpdate() {
+  const btn = document.getElementById('oda-update-check-btn');
+  const status = document.getElementById('oda-update-check-status');
+  const setStatus = (m) => { if (status) status.textContent = m; };
+  if (btn) btn.disabled = true;
+  setStatus('Checking...');
+
+  if (!('serviceWorker' in navigator)) {
+    setStatus('Service worker not supported in this browser. Open https://sbierlink08.github.io/monument-oda/ in Chrome to use the auto-updating PWA.');
+    if (btn) btn.disabled = false;
+    return;
+  }
+  const proto = window.location.protocol;
+  if (proto !== 'https:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    setStatus('This copy is loaded directly (not the GitHub Pages PWA). Open https://sbierlink08.github.io/monument-oda/ to use auto-update.');
+    if (btn) btn.disabled = false;
+    return;
+  }
+
+  let updateFound = false;
+  const onMessage = (event) => {
+    if (event.data && event.data.type === 'ODA_UPDATE_READY') updateFound = true;
+  };
+  navigator.serviceWorker.addEventListener('message', onMessage);
+
+  try {
+    const reg = await navigator.serviceWorker.getRegistration();
+    if (!reg) {
+      setStatus('Service worker not registered yet. Reload the page once and try again.');
+      navigator.serviceWorker.removeEventListener('message', onMessage);
+      if (btn) btn.disabled = false;
+      return;
+    }
+    // Re-check the SW script itself for changes.
+    await reg.update();
+    // Re-fetch index.html through the SW so the compare-and-notify path fires.
+    await fetch('./index.html', { cache: 'no-cache' }).catch(() => null);
+    // Give the SW ~2s to post the ODA_UPDATE_READY message if a diff is found.
+    await new Promise(r => setTimeout(r, 1800));
+    navigator.serviceWorker.removeEventListener('message', onMessage);
+
+    if (updateFound) {
+      setStatus('New version found! Tap the banner above to reload.');
+    } else {
+      const stampEl = document.getElementById('header-build-stamp');
+      const stampText = stampEl ? stampEl.textContent.trim() : 'current build';
+      setStatus("You're on the latest version (" + stampText + ").");
+    }
+  } catch (err) {
+    setStatus('Update check failed: ' + (err && err.message ? err.message : 'unknown error'));
+    navigator.serviceWorker.removeEventListener('message', onMessage);
+  } finally {
+    if (btn) btn.disabled = false;
+  }
 }
 
 function saveSettings() {

@@ -4,7 +4,7 @@
 // new version and tell every open page to show an "update available" banner.
 // One tap on the banner = location.reload() and the user is on the new code.
 
-const CACHE_VERSION = 'oda-v1';
+const CACHE_VERSION = 'oda-v2'; // bumped 2026-04-26 for in-app-update-check + reliable network re-fetch
 const CORE_ASSETS = [
   './',
   './index.html',
@@ -44,7 +44,7 @@ self.addEventListener('fetch', (event) => {
       const cached = await cache.match(req);
 
       // Background: fetch a fresh copy and compare.
-      const networkPromise = fetch(req)
+      const networkPromise = fetch(req, { cache: 'no-cache' })
         .then(async (resp) => {
           if (!resp || !resp.ok) return resp;
           const respClone = resp.clone();
