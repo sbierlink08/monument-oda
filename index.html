@@ -263,7 +263,7 @@ body {
   <div style="text-align:center; padding: 8px 0 4px;">
     <div style="font-size:18px; font-weight:700;">Monument Apples</div>
     <div style="font-size:11px; color:var(--text-dim); font-style:italic; margin-top:2px;">Orchard Decision Aid (ODA)</div>
-    <div id="header-build-stamp" style="font-size:9px; color:var(--text-dim); margin-top:1px; opacity:0.6;">build 2026-04-26.per-block-dafb-v5-bloom-inferred (was in-app-update-check / per-block-dafb-v4-bloom-priority)</div>
+    <div id="header-build-stamp" style="font-size:9px; color:var(--text-dim); margin-top:1px; opacity:0.6;">build 2026-04-26.in-app-update-check-v2-card-top (was per-block-dafb-v5-bloom-inferred / in-app-update-check / per-block-dafb-v4-bloom-priority)</div>
     <div style="font-size:12px; color:var(--text-dim);" id="header-date"></div>
     <div id="sync-status"></div>
   </div>
@@ -468,6 +468,16 @@ Blk3 100% king / 75% full bloom"></textarea>
   <!-- SETTINGS TAB -->
   <div id="tab-settings" class="tab-content">
     <div class="card">
+      <div class="card-title">App Version</div>
+      <div style="font-size:12px; color:var(--text-dim); margin-bottom:10px;">
+        Tap to pull the latest version from GitHub Pages. If a new version is found, the &quot;New version available&quot; banner above will appear — tap that to reload.
+      </div>
+      <div style="display:flex; gap:8px; margin-top:8px;">
+        <button class="btn btn-primary btn-small" id="oda-update-check-btn" onclick="checkForUpdate()">Check for Update</button>
+      </div>
+      <div id="oda-update-check-status" style="font-size:11px; color:var(--text-dim); margin-top:8px;"></div>
+    </div>
+    <div class="card">
       <div class="card-title">Block Configuration</div>
       <div id="settings-blocks"></div>
       <button class="btn btn-secondary btn-small" style="margin-top:10px;" onclick="resetToDefaults()">Reset to Monument Defaults</button>
@@ -529,16 +539,6 @@ Blk3 100% king / 75% full bloom"></textarea>
         <button class="btn btn-secondary btn-small" onclick="forceSyncNow()">Sync Now</button>
       </div>
       <div id="sync-setup-status" style="font-size:11px; margin-top:8px;"></div>
-    </div>
-    <div class="card">
-      <div class="card-title">App Version</div>
-      <div style="font-size:12px; color:var(--text-dim); margin-bottom:10px;">
-        Tap to pull the latest version from GitHub Pages. If a new version is found, the &quot;New version available&quot; banner above will appear — tap that to reload.
-      </div>
-      <div style="display:flex; gap:8px; margin-top:8px;">
-        <button class="btn btn-primary btn-small" id="oda-update-check-btn" onclick="checkForUpdate()">Check for Update</button>
-      </div>
-      <div id="oda-update-check-status" style="font-size:11px; color:var(--text-dim); margin-top:8px;"></div>
     </div>
   </div>
 
