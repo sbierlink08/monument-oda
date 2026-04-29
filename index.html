@@ -1343,12 +1343,10 @@ async function saveToCloud() {
     const jsonData = JSON.stringify(payload);
 
     // Use hidden iframe + form POST to avoid:
-    // 1. URL length limits (GET param can't handle 50KB+ of state)
+    // 1. URL length limits (GET param cannot handle 50KB+ of state)
     // 2. CORS/redirect issues (no-cors POST loses body on 302)
-    // The iframe absorbs the redirect silently. The Apps Script web app
-    // 302-redirects to script.googleusercontent.com, so iframe.contentDocument
-    // is cross-origin and unreadable — verification happens via a follow-up
-    // GET that checks the saved state carries our nonce.
+    // The iframe absorbs the redirect silently. Verification happens via a
+    // follow-up GET that checks the saved state carries our nonce.
     await new Promise((resolve, reject) => {
       const iframeName = "sync_frame_" + Date.now();
       const iframe = document.createElement("iframe");
@@ -1375,7 +1373,14 @@ async function saveToCloud() {
       document.body.appendChild(form);
 
       let settled = false;
+      let pollTimer = null;
+      let hardTimer = null;
+      let pollStartTimer = null;
+
       const cleanup = () => {
+        if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+        if (hardTimer) { clearTimeout(hardTimer); hardTimer = null; }
+        if (pollStartTimer) { clearTimeout(pollStartTimer); pollStartTimer = null; }
         try { if (iframe.parentNode) document.body.removeChild(iframe); } catch (_) {}
         try { if (form.parentNode) document.body.removeChild(form); } catch (_) {}
       };
@@ -1399,73 +1404,43 @@ async function saveToCloud() {
         reject(err instanceof Error ? err : new Error(String(err)));
       };
 
-      const verifyAfterLoad = async () => {
+      // Verify by polling the saved state. Replaces the prior iframe.onload-
+      // triggered verification which silently failed when Apps Script's
+      // response embedded sub-resources (lib= scripts) that returned 403 or
+      // hung — onload never fired, save was actually completed server-side,
+      // widget timed out anyway. Polling decouples client-side success
+      // detection from iframe load state. (2026-04-29 fix for TODO #108.)
+      const checkNonce = async () => {
         if (settled) return;
-
-        // Attempt 1: read iframe response body. Usually cross-origin; will throw.
         try {
-          const doc = iframe.contentDocument || (iframe.contentWindow && iframe.contentWindow.document);
-          if (doc && doc.body) {
-            const txt = (doc.body.innerText || doc.body.textContent || "").trim();
-            if (txt) {
-              try {
-                const parsed = JSON.parse(txt);
-                if (parsed && parsed.status === "ok") {
-                  finishOk("iframe-body");
-                  return;
-                }
-                if (parsed && parsed.status === "error") {
-                  finishErr("server-rejected", new Error("Server: " + parsed.message));
-                  return;
-                }
-              } catch (_) {
-                // Body present but not JSON — likely an HTML error page. Fall through.
-              }
-            }
-          }
+          const resp = await fetch(syncUrl + "?action=state&_t=" + Date.now(), { cache: "no-store" });
+          if (!resp.ok) return;
+          const text = await resp.text();
+          let body;
+          try { body = JSON.parse(text); } catch (_) { return; }
+          if (body && body._saveNonce === nonce) finishOk("nonce-poll");
         } catch (_) {
-          // Cross-origin — expected. Fall through to nonce verification.
-        }
-
-        // Attempt 2: nonce verification via GET. Drive write needs a moment
-        // to be visible to the next read, so wait briefly first.
-        try {
-          await new Promise(r => setTimeout(r, 800));
-          const verifyResp = await fetch(syncUrl + "?action=state&_t=" + Date.now(), { cache: "no-store" });
-          if (!verifyResp.ok) throw new Error("Verify HTTP " + verifyResp.status);
-          const verifyText = await verifyResp.text();
-          let verifyBody;
-          try {
-            verifyBody = JSON.parse(verifyText);
-          } catch (parseErr) {
-            throw new Error("Verify response was not JSON: " + verifyText.slice(0, 200));
-          }
-          if (verifyBody && verifyBody._saveNonce === nonce) {
-            finishOk("nonce-verified");
-          } else {
-            finishErr("nonce-mismatch",
-              new Error("Server did not retain the latest save (sent " + nonce +
-                        ", got " + (verifyBody && verifyBody._saveNonce) + ")"));
-          }
-        } catch (verifyErr) {
-          finishErr("verify-fetch", verifyErr);
+          // network blip — try again next tick
         }
       };
 
-      iframe.onload = () => { verifyAfterLoad(); };
+      // Opportunistic: if iframe.onload happens to fire, do an instant verify.
+      iframe.onload = () => { checkNonce(); };
+      iframe.onerror = () => { finishErr("iframe-onerror", new Error("Iframe POST failed")); };
 
-      iframe.onerror = () => {
-        finishErr("iframe-onerror", new Error("Iframe POST failed"));
-      };
-
-      // Hard timeout: if the iframe never loads at all in 20 seconds, give up.
-      // Previous behavior treated timeout as success — that's the silent-save
-      // bug. New behavior treats timeout as error so the indicator turns red.
-      setTimeout(() => {
-        finishErr("timeout", new Error("Cloud save timed out after 20 seconds"));
-      }, 20000);
+      // Hard timeout: if no verify succeeds in 60 seconds, give up.
+      hardTimer = setTimeout(() => {
+        finishErr("timeout", new Error("Cloud save timed out after 60 seconds"));
+      }, 60000);
 
       form.submit();
+
+      // Start polling 1s after submit, then every 2s. Server typically completes in 2-6s.
+      pollStartTimer = setTimeout(() => {
+        if (settled) return;
+        checkNonce();
+        pollTimer = setInterval(checkNonce, 2000);
+      }, 1000);
     });
   } catch (err) {
     syncStatus = "error";

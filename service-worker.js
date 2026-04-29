@@ -4,7 +4,7 @@
 // new version and tell every open page to show an "update available" banner.
 // One tap on the banner = location.reload() and the user is on the new code.
 
-const CACHE_VERSION = 'oda-v2'; // bumped 2026-04-26 for in-app-update-check + reliable network re-fetch
+const CACHE_VERSION = 'oda-v3'; // bumped 2026-04-29 for polling-based cloud-save verification fix (TODO #108)
 const CORE_ASSETS = [
   './',
   './index.html',
